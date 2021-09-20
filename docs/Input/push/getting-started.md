@@ -3,7 +3,9 @@ Order: 1
 ---
 
 Push notifications come in so many flavours these days.  The community needed one way of doing things, but the ability to swap providers in and out at will.  The reason, push providers, aside from native have been dropping
-like flies the last several years.  The latest to go was AppCenter which it turns out the Xamarin community was heavily invested in. 
+like flies the last several years.  The latest to go was AppCenter which it turns out the Xamarin community was heavily invested in.
+
+NOTE: Shiny Push does not return the notification details?  Why you might ask - because the fact is that data is not given by the operating system while your app is in the background AND the OS deals with the notification automatically anyhow. 
 
 ## Setup
 General OS setup is mostly the same on all platforms, but please review the specific provider you intend to use from the menu for more information
@@ -50,14 +52,11 @@ using Shiny.Push;
 
 public class PushDelegate : IPushDelegate
 {
-    public async Task OnEntry(PushEntryArgs args)
+    public async Task OnReceived(IReadOnlyDictionary<string, string> data)
     {
-        // fires when the user taps on a push notification
-    }
-
-    public async Task OnReceived(IDictionary<string, string> data)
-    {
-        // fires when a push notification is received (silient or notification)
+        // fires when a push is received (silient or notification).
+        // iOS: must have content-available: 1 
+        // Android: must include some data
     }
 
     public async Task OnTokenChanged(string token)

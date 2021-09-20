@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Shiny.Push.Infrastructure;
@@ -26,14 +27,7 @@ namespace Shiny.Push
         //                this.logger.LogError(ex, "Unable to register push");
         //            }
 
-        public Func<PushNotification, Task>? OnReceived
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
-
-
-        public Func<PushNotificationResponse, Task>? OnEntry
+        public Func<IReadOnlyDictionary<string, string>, Task>? OnReceived
         {
             get => throw new NotImplementedException();
             set => throw new NotImplementedException();

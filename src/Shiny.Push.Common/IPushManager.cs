@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,7 +12,7 @@ namespace Shiny.Push
         /// This is an observable intended for use in the foreground
         /// </summary>
         /// <returns></returns>
-        IObservable<PushNotification> WhenReceived();
+        IObservable<IReadOnlyDictionary<string, string>> WhenReceived();
 
         /// <summary>
         /// This is when the token was registered

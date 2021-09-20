@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Com.OneSignal.Abstractions;
 using OS = global::Com.OneSignal.OneSignal;
-using Shiny.Notifications;
 
 
 namespace Shiny.Push.OneSignal
@@ -31,21 +30,20 @@ namespace Shiny.Push.OneSignal
             OS.Current.SetLogLevel(this.config.LogLevel, this.config.VisualLogLevel);
             OS.Current
                 .StartInit(this.config.AppId)
-                .HandleNotificationOpened(async x =>
+                .HandleNotificationReceived(async notification =>
                 {
-                    var notification = ToNotification(x.notification?.payload);
-                    var pr = new PushNotificationResponse(notification, x.action?.actionID, null);
-                    await this.container.OnEntry(pr).ConfigureAwait(false);
-                })
-                .HandleNotificationReceived(async x =>
-                {
-                    // silence onesignal notification
-                    x.silentNotification = true;
+                    var dict = notification?
+                        .payload
+                        .additionalData?
+                        .ToDictionary(
+                            y => y.Key,
+                            y => y.Value.ToString()
+                        ) ?? new Dictionary<string, string>(0);
 
-                    // could also build channel here
-                    var notification = ToNotification(x.payload);
-                    var pn = new PushNotification(notification.Payload, notification);
-                    await this.container.OnReceived(pn).ConfigureAwait(false);
+                    var data = (IReadOnlyDictionary<string, string>)dict;
+                    await this.container
+                        .OnReceived(data)
+                        .ConfigureAwait(false);
                 })
                 .Settings(new Dictionary<string, bool>
                 {
@@ -81,7 +79,7 @@ namespace Shiny.Push.OneSignal
         }
 
 
-        public IObservable<PushNotification> WhenReceived() => this.container.WhenReceived();
+        public IObservable<IReadOnlyDictionary<string, string>> WhenReceived() => this.container.WhenReceived();
         public IReadOnlyDictionary<string, string> CurrentProperties => this.Properties;
 
 
@@ -134,26 +132,6 @@ namespace Shiny.Push.OneSignal
             }
             this.Properties[property] = value;
             this.WriteProps();
-        }
-
-
-        static Notification ToNotification(OSNotificationPayload payload)
-        {
-            var data = payload?
-                .additionalData?
-                .ToDictionary(
-                    y => y.Key,
-                    y => y.Value.ToString()
-                )
-                ?? new Dictionary<string, string>(0);
-
-            return new Notification
-            {
-                Title = payload?.title,
-                Message = payload?.body,
-                BadgeCount = payload?.badge,
-                Payload = data
-            };
         }
 
 

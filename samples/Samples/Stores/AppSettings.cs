@@ -2,6 +2,7 @@
 using System.Reactive.Linq;
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
+using Shiny.Stores;
 
 
 namespace Samples.Stores
@@ -15,6 +16,7 @@ namespace Samples.Stores
     }
 
 
+    [ObjectStoreBinder("settings")]
     public class AppSettings : ReactiveObject, IAppSettings
     {
         const string DEFAULT_TRANSFER = "http://ipv4.download.thinkbroadband.com/1GB.zip";

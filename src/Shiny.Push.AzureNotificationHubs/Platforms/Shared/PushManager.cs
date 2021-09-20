@@ -52,14 +52,13 @@ namespace Shiny.Push.AzureNotificationHubs
             };
 
             this.native.OnReceived = push => this.container.OnReceived(push);
-            this.native.OnEntry = push => this.container.OnEntry(push);
             await this.container
                 .TryAutoStart(this.native, this.logger)
                 .ConfigureAwait(false);
         }
 
 
-        public IObservable<PushNotification> WhenReceived() => this.container.WhenReceived();
+        public IObservable<IReadOnlyDictionary<string, string>> WhenReceived() => this.container.WhenReceived();
         public string? CurrentRegistrationToken => this.InstallationId;
         public DateTime? CurrentRegistrationTokenDate => this.container.CurrentRegistrationTokenDate;
         public string[]? RegisteredTags => this.container.RegisteredTags;

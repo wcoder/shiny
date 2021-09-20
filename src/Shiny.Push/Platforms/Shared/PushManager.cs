@@ -1,5 +1,6 @@
 ﻿#if !NETSTANDARD
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -39,15 +40,13 @@ namespace Shiny.Push
             };
 
             this.adapter.OnReceived = push => this.container.OnReceived(push);
-            this.adapter.OnEntry = push => this.container.OnEntry(push);
-
             await this.container
                 .TryAutoStart(this.adapter, this.logger)
                 .ConfigureAwait(false);
         }
 
 
-        public IObservable<PushNotification> WhenReceived() => this.container.WhenReceived();
+        public IObservable<IReadOnlyDictionary<string, string>> WhenReceived() => this.container.WhenReceived();
 
 
         public async Task<PushAccessState> RequestAccess(CancellationToken cancelToken = default)

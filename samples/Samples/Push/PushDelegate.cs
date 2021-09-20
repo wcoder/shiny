@@ -20,10 +20,7 @@ namespace Samples.Push
             this.pushManager = pushManager;
         }
 
-        public Task OnEntry(PushNotificationResponse push)
-            => this.Insert("PUSH ENTRY");
-
-        public Task OnReceived(PushNotification push)
+        public Task OnReceived(IReadOnlyDictionary<string, string> data)
             => this.Insert("PUSH RECEIVED");
 
         public Task OnTokenRefreshed(string token)

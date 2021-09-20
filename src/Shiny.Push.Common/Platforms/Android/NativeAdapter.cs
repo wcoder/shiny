@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Android.Content;
 using Android.Gms.Extensions;
 using Android.Runtime;
 using Firebase;
@@ -13,31 +14,19 @@ namespace Shiny.Push
 {
     public class NativeAdapter : INativeAdapter
     {
-        readonly AndroidPushNotificationManager notifications;
         readonly IAndroidContext context;
         readonly FirebaseConfig? config;
 
 
-        public NativeAdapter(AndroidPushNotificationManager notifications,
-                             IAndroidContext context,
-                             FirebaseConfig? config = null)
+        public NativeAdapter(IAndroidContext context, FirebaseConfig? config = null)
         {
-            this.notifications = notifications;
             this.context = context;
             this.config = config;
         }
 
 
-        public async Task TryProcessIntent(Intent intent)
-        {
-            var pr = this.notifications.FromIntent(intent);
-            if (pr != null && this.OnEntry != null)
-                await this.OnEntry.Invoke(pr.Value).ConfigureAwait(false);
-        }
-
-
-        Func<PushNotification, Task>? onReceived;
-        public Func<PushNotification, Task>? OnReceived
+        Func<IReadOnlyDictionary<string, string>, Task>? onReceived;
+        public Func<IReadOnlyDictionary<string, string>, Task>? OnReceived
         {
             get => this.onReceived;
             set
@@ -51,40 +40,10 @@ namespace Shiny.Push
                 {
                     ShinyFirebaseService.MessageReceived = async msg =>
                     {
-                        var pr = AndroidPushNotificationManager.FromNative(msg);
-                        await this.onReceived.Invoke(pr).ConfigureAwait(false);
-                        if (pr.Notification != null)
-                        {
-                            // TODO: channel
-                            var nn = this.notifications.CreateNativeNotification(pr.Notification, null);
-                            this.notifications.SendNative(0, nn);
-                        }
+                        var dict = msg.Data.ToDictionary(x => x.Key, x => x.Value);
+                        var data = (IReadOnlyDictionary<string, string>)dict;
+                        await this.onReceived.Invoke(data).ConfigureAwait(false);
                     };
-                }
-            }
-        }
-
-
-        IDisposable? onEntrySub;
-        Func<PushNotificationResponse, Task>? onEntry;
-        public Func<PushNotificationResponse, Task>? OnEntry
-        {
-            get => this.onEntry;
-            set
-            {
-                this.onEntry = value;
-                if (this.onEntry == null)
-                {
-                    this.onEntrySub?.Dispose();
-                    ShinyPushNotificationBroadcastReceiver.ProcessIntent = null;
-                }
-                else
-                {
-                    this.onEntrySub = this.context
-                        .WhenIntentReceived()
-                        .SubscribeAsync(intent => this.TryProcessIntent(intent));
-
-                    ShinyPushNotificationBroadcastReceiver.ProcessIntent = intent => this.TryProcessIntent(intent);
                 }
             }
         }

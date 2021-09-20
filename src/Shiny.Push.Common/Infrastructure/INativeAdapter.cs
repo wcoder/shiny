@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
@@ -9,8 +10,7 @@ namespace Shiny.Push.Infrastructure
         Task<PushAccessState> RequestAccess();
         Task UnRegister();
 
-        Func<PushNotification, Task>? OnReceived { get; set; }
-        Func<PushNotificationResponse, Task>? OnEntry { get; set; }
+        Func<IReadOnlyDictionary<string, string>, Task>? OnReceived { get; set; }
         Func<string, Task>? OnTokenRefreshed { get; set; }
     }
 }
